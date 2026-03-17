@@ -1,0 +1,22 @@
+{
+  "name": "job-search-agent",
+  "version": "1.0.0",
+  "description": "Automated job search assistant — daily digest, opportunity monitoring, email drafting",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "digest": "node src/index.js --job=digest",
+    "monitor": "node src/index.js --job=monitor",
+    "draft": "node src/index.js --job=draft",
+    "test": "node src/index.js --job=digest --dry-run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "googleapis": "^144.0.0",
+    "rss-parser": "^3.13.0",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.5",
+    "nodemailer": "^6.9.13"
+  }
+}
