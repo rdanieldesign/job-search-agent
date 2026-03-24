@@ -2,7 +2,7 @@
 
 A personal AI-powered job search assistant. Runs daily, monitors your calendar and Gmail,
 tracks your opportunity pipeline in Google Sheets, scores new job listings, and drafts emails.
-Built with Node.js + Claude API (Haiku) + Google APIs. Deployable to Render.com (paid tier required for background workers).
+Built with Node.js + Claude API (Haiku) + Google APIs. Runs on GitHub Actions — no server required.
 
 ---
 
@@ -94,7 +94,7 @@ LINKEDIN_REMOTE=REMOTE,HYBRID                  # Filter by location type (defaul
 
 **⚠️ Rate limiting:** Don't set `MONITOR_SCHEDULE` to run more than every 4 hours. If you see `429 too many requests` errors, increase `LINKEDIN_REQUEST_DELAY_MS` to 1000–2000ms.
 
-### 7. Test it
+### 7. Test it locally
 
 ```bash
 # Dry run — prints output to console, sends no emails
@@ -106,29 +106,59 @@ npm run monitor
 npm run draft
 ```
 
-### 8. Deploy to Render.com
+### 8. Deploy with GitHub Actions
 
-**Note:** Render's free tier only covers web services and static sites. This agent runs as a persistent background worker (for `node-cron` scheduling) which requires a paid plan — Starter tier at $7/month.
+Scheduling is handled by three GitHub Actions workflows — no server or paid hosting required. Private repos get 2,000 free minutes/month; these jobs use only a few seconds each run.
 
-Alternatively, run the agent locally with `npm start` and keep the terminal open, or use any always-on machine you have access to.
+**Step 1: Push to GitHub**
 
-**To deploy on Render:**
+```bash
+git remote add origin https://github.com/your-username/job-search-agent.git
+git push -u origin master
+```
 
-1. Push repo to GitHub (make sure `.env` is in `.gitignore` ✓)
-2. Go to [render.com](https://render.com) → New → Background Worker
-3. Connect your GitHub repo
-4. Build command: `npm install`
-5. Start command: `npm start`
-6. Add all `.env` values as Environment Variables in the Render dashboard:
-   - `ANTHROPIC_API_KEY`
-   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-   - `GOOGLE_ACCESS_TOKEN`, `GOOGLE_REFRESH_TOKEN`
-   - `YOUR_EMAIL`, `YOUR_NAME`
-   - `PIPELINE_SHEET_ID`, `PIPELINE_SHEET_TAB`
-   - `LINKEDIN_QUERIES`
-   - `LINKEDIN_LIMIT`, `LINKEDIN_REQUEST_DELAY_MS`, etc.
-   - `DIGEST_SCHEDULE`, `MONITOR_SCHEDULE`
-7. Deploy
+**Step 2: Add secrets**
+
+Go to your repo → **Settings → Secrets and variables → Actions → New repository secret**.
+
+Add each of the following:
+
+| Secret | Where to find it |
+|---|---|
+| `ANTHROPIC_API_KEY` | platform.claude.com |
+| `GOOGLE_CLIENT_ID` | Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | Google Cloud Console |
+| `GOOGLE_ACCESS_TOKEN` | Output of `node src/auth.js` |
+| `GOOGLE_REFRESH_TOKEN` | Output of `node src/auth.js` |
+| `YOUR_EMAIL` | Your Gmail address |
+| `YOUR_NAME` | Your name (used in email drafts) |
+| `PIPELINE_SHEET_ID` | From your Google Sheet URL |
+| `PIPELINE_SHEET_TAB` | Tab name, if not `Pipeline` |
+| `LINKEDIN_QUERIES` | JSON array, e.g. `[{"query":"Engineering Manager","location":"United States"}]` |
+
+Optional secrets (code uses defaults if not set):
+
+| Secret | Default |
+|---|---|
+| `LINKEDIN_LIMIT` | `25` |
+| `LINKEDIN_REQUEST_DELAY_MS` | `500` |
+| `LINKEDIN_TIME_FILTER` | `DAY` |
+| `LINKEDIN_EXPERIENCE_LEVEL` | `MID_SENIOR,DIRECTOR` |
+| `LINKEDIN_REMOTE` | `REMOTE,HYBRID` |
+
+**Step 3: Adjust schedules (optional)**
+
+The workflow files in `.github/workflows/` contain the cron schedules. All times are **UTC** — adjust to match your timezone:
+
+| Workflow | Default (UTC) | Example: convert to 7 AM EST |
+|---|---|---|
+| `digest.yml` | `0 7 * * *` (7:00 AM) | `0 12 * * *` |
+| `monitor.yml` | `0 */4 * * *` (every 4h) | no change needed |
+| `drafter.yml` | `30 6 * * *` (6:30 AM) | `30 11 * * *` |
+
+**Step 4: Trigger manually (optional)**
+
+Each workflow has `workflow_dispatch` enabled. Go to **Actions → [workflow name] → Run workflow** to trigger any job on demand without waiting for the schedule.
 
 ---
 
@@ -189,20 +219,26 @@ Using Claude Haiku (cheapest model, fully capable for this use case):
 
 ```
 job-search-agent/
+├── .github/
+│   └── workflows/
+│       ├── digest.yml      ← Daily digest (7:00 AM UTC)
+│       ├── monitor.yml     ← Job monitor (every 4 hours)
+│       └── drafter.yml     ← Interview drafter (6:30 AM UTC)
 ├── src/
-│   ├── index.js        ← Main entry point + scheduler
-│   ├── auth.js         ← Google OAuth setup (run once)
+│   ├── index.js        ← CLI entry point (--job=digest|monitor|draft|outreach)
+│   ├── auth.js         ← Google OAuth setup (run once, locally)
 │   ├── google.js       ← Shared Google API client
 │   ├── gmail.js        ← Email fetching + sending + drafts
 │   ├── calendar.js     ← Calendar event fetching
 │   ├── sheets.js       ← Pipeline tracker read/write
 │   ├── linkedin.js     ← LinkedIn public job board client
 │   ├── digest.js       ← Daily briefing email generator
-│   ├── monitor.js      ← Job scraping + scoring orchestrator
+│   ├── monitor.js      ← Job scoring + alert orchestrator
 │   └── drafter.js      ← Email/outreach drafter
 ├── prompts/
 │   └── profile.js      ← Your job search profile (update this)
-├── .env.example        ← Copy to .env and fill in
+├── .env.example        ← Copy to .env and fill in (local dev only)
+├── CLAUDE.md           ← Guidelines for AI-assisted development
 ├── .gitignore
 ├── package.json
 └── README.md

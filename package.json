@@ -5,7 +5,6 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
     "digest": "node src/index.js --job=digest",
     "monitor": "node src/index.js --job=monitor",
     "draft": "node src/index.js --job=draft",
@@ -15,7 +14,6 @@
     "@anthropic-ai/sdk": "^0.39.0",
     "cheerio": "^1.2.0",
     "dotenv": "^16.4.5",
-    "googleapis": "^144.0.0",
-    "node-cron": "^3.0.3"
+    "googleapis": "^144.0.0"
   }
 }

@@ -1,0 +1,34 @@
+name: Daily Digest
+
+# Runs at 7:00 AM UTC daily.
+# To adjust for your timezone, convert to UTC:
+#   e.g. 7:00 AM EST = 12:00 UTC → cron: '0 12 * * *'
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch: # allows manual trigger from GitHub Actions UI
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: node src/index.js --job=digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_ACCESS_TOKEN: ${{ secrets.GOOGLE_ACCESS_TOKEN }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          YOUR_EMAIL: ${{ secrets.YOUR_EMAIL }}
+          YOUR_NAME: ${{ secrets.YOUR_NAME }}
+          PIPELINE_SHEET_ID: ${{ secrets.PIPELINE_SHEET_ID }}
+          PIPELINE_SHEET_TAB: ${{ secrets.PIPELINE_SHEET_TAB }}

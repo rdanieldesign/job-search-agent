@@ -1,0 +1,40 @@
+name: Job Monitor
+
+# Runs every 4 hours. Adjust the cron if you want different frequency.
+# Note: GitHub Actions schedules run in UTC and may be delayed up to ~15 minutes
+# during periods of high load.
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch: # allows manual trigger from GitHub Actions UI
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: node src/index.js --job=monitor
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_ACCESS_TOKEN: ${{ secrets.GOOGLE_ACCESS_TOKEN }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          YOUR_EMAIL: ${{ secrets.YOUR_EMAIL }}
+          YOUR_NAME: ${{ secrets.YOUR_NAME }}
+          PIPELINE_SHEET_ID: ${{ secrets.PIPELINE_SHEET_ID }}
+          PIPELINE_SHEET_TAB: ${{ secrets.PIPELINE_SHEET_TAB }}
+          LINKEDIN_QUERIES: ${{ secrets.LINKEDIN_QUERIES }}
+          LINKEDIN_LIMIT: ${{ secrets.LINKEDIN_LIMIT }}
+          LINKEDIN_REQUEST_DELAY_MS: ${{ secrets.LINKEDIN_REQUEST_DELAY_MS }}
+          LINKEDIN_TIME_FILTER: ${{ secrets.LINKEDIN_TIME_FILTER }}
+          LINKEDIN_EXPERIENCE_LEVEL: ${{ secrets.LINKEDIN_EXPERIENCE_LEVEL }}
+          LINKEDIN_REMOTE: ${{ secrets.LINKEDIN_REMOTE }}
