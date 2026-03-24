@@ -2,10 +2,14 @@ node_modules/
 .env
 *.log
 .DS_Store
- 
+
 # Your personal job search profile — contains private info, never commit this
 # Use profile.example.js as the template
 prompts/profile.js
+
+# Planning and migration documents — ephemeral, not for version control
+# Per CLAUDE.md: add each PLAN_*.md here when created, remove when deleted
 IMPLEMENTATION_SUMMARY.md
 LINKEDIN_SCRAPER_MIGRATION.md
 MIGRATION_COMPLETE.md
+PLAN_linkedin_public_api.md

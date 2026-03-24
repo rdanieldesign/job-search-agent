@@ -14,7 +14,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // Track already-seen job IDs to avoid duplicates
 // This will be loaded from Sheets on startup and persisted after each run
-let seenJobIds = new Set();
+let seenJobIds = new Map();
 
 /**
  * Monitor LinkedIn for new job matches
@@ -42,7 +42,7 @@ export async function monitorJobs() {
       console.log(`[Monitor] Skipping seen job: ${job.title}`);
       continue;
     }
-    seenJobIds.add(jobId);
+    seenJobIds.set(jobId, { title: job.title, company: job.company });
 
     const assessment = await assessJob(job);
     if (assessment && assessment.matchScore >= 70) {

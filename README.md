@@ -2,7 +2,7 @@
 
 A personal AI-powered job search assistant. Runs daily, monitors your calendar and Gmail,
 tracks your opportunity pipeline in Google Sheets, scores new job listings, and drafts emails.
-Built with Node.js + Claude API (Haiku) + Google APIs. Deployable to Render.com for free.
+Built with Node.js + Claude API (Haiku) + Google APIs. Deployable to Render.com (paid tier required for background workers).
 
 ---
 
@@ -62,29 +62,15 @@ Create a Google Sheet with **two tabs**:
 Company | Role | Status | Applied Date | Last Contact | Next Action | Notes | Match Score | Ethics Flag
 ```
 
-**Tab 2: "Seen"** — just leave blank (the monitor will use this to track job IDs across restarts and avoid re-scoring the same jobs)
+**Tab 2: "Seen"** — just leave blank (the monitor will use this to track seen jobs across restarts and avoid re-scoring them; it writes three columns: `Job ID | Title | Company`)
 
 Copy the Sheet ID from the URL into `PIPELINE_SHEET_ID` in `.env`.
 
-### 6. Set up LinkedIn Scraper
+### 6. Set up LinkedIn Job Search
 
-The Job Monitor scrapes LinkedIn's public job listings directly using a secondary LinkedIn account.
+The Job Monitor fetches listings directly from LinkedIn's public job board — no account, login, or browser required.
 
-**Why secondary account?** LinkedIn may rate-limit or temporarily block accounts that scrape frequently. Use an account separate from your main job-search account.
-
-**Step 1: Extract your `li_at` session cookie**
-
-1. Log in to LinkedIn in Chrome using a **secondary account**
-2. Open Chrome DevTools: Right-click → Inspect or press `Cmd+Option+I`
-3. Go to the **Application** tab (not "Storage", it's under the main tabs)
-4. In the left panel, expand **Cookies** → select `https://www.linkedin.com`
-5. Find the row with name `li_at` and copy its full **Value** (it's a long string)
-6. Paste into your `.env` file:
-   ```
-   LI_AT_COOKIE=<paste-the-long-value-here>
-   ```
-
-**Step 2: Configure your search queries**
+**Step 1: Configure your search queries**
 
 Edit `.env` and set `LINKEDIN_QUERIES` as a JSON array:
 
@@ -94,21 +80,19 @@ LINKEDIN_QUERIES=[{"query":"Senior Engineering Manager","location":"United State
 
 You can use any job title and location. Keep this in `.env` only — never commit to git.
 
-**Step 3: Optional — fine-tune scraper behavior**
+**Step 2: Optional — fine-tune search behavior**
 
 In `.env`, adjust these if needed:
 
 ```
 LINKEDIN_LIMIT=25                              # Max jobs per query (default: 25)
-LINKEDIN_SLOW_MO=200                           # Pause between actions in ms (higher = safer, default: 200)
+LINKEDIN_REQUEST_DELAY_MS=500                  # Pause between HTTP requests in ms (default: 500)
 LINKEDIN_TIME_FILTER=DAY                       # Only fetch: DAY | WEEK | MONTH | ANY (default: DAY)
 LINKEDIN_EXPERIENCE_LEVEL=MID_SENIOR,DIRECTOR  # Filter by level (default: MID_SENIOR,DIRECTOR)
 LINKEDIN_REMOTE=REMOTE,HYBRID                  # Filter by location type (default: REMOTE,HYBRID)
 ```
 
-**⚠️ Rate limiting:** Don't set `MONITOR_SCHEDULE` to run more than every 4 hours. LinkedIn will rate-limit aggressive scraping. If you see `429 too many requests` errors, increase `LINKEDIN_SLOW_MO` to 300–500ms.
-
-**⚠️ Cookie expiry:** LinkedIn sessions expire typically every 2–4 weeks. When scraping fails with auth errors, repeat Step 1 to extract a fresh `li_at` cookie.
+**⚠️ Rate limiting:** Don't set `MONITOR_SCHEDULE` to run more than every 4 hours. If you see `429 too many requests` errors, increase `LINKEDIN_REQUEST_DELAY_MS` to 1000–2000ms.
 
 ### 7. Test it
 
@@ -124,32 +108,27 @@ npm run draft
 
 ### 8. Deploy to Render.com
 
-**Important: Render free tier limitations**
+**Note:** Render's free tier only covers web services and static sites. This agent runs as a persistent background worker (for `node-cron` scheduling) which requires a paid plan — Starter tier at $7/month.
 
-The LinkedIn scraper uses Puppeteer, which launches a full Chromium browser (~170MB). Render's free tier has a 512MB RAM limit — Chromium may cause OOM errors or timeout. For reliable deployment:
+Alternatively, run the agent locally with `npm start` and keep the terminal open, or use any always-on machine you have access to.
 
-- **Option 1 (Recommended):** Use Render's Standard tier ($7/month) or higher
-- **Option 2:** Run the agent locally on your machine instead of on Render
-
-**If you use Render Standard or paid tier:**
+**To deploy on Render:**
 
 1. Push repo to GitHub (make sure `.env` is in `.gitignore` ✓)
 2. Go to [render.com](https://render.com) → New → Background Worker
 3. Connect your GitHub repo
 4. Build command: `npm install`
 5. Start command: `npm start`
-6. Add all `.env` values as Environment Variables in Render dashboard:
+6. Add all `.env` values as Environment Variables in the Render dashboard:
    - `ANTHROPIC_API_KEY`
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
    - `GOOGLE_ACCESS_TOKEN`, `GOOGLE_REFRESH_TOKEN`
    - `YOUR_EMAIL`, `YOUR_NAME`
    - `PIPELINE_SHEET_ID`, `PIPELINE_SHEET_TAB`
-   - `LI_AT_COOKIE`, `LINKEDIN_QUERIES`
-   - `LINKEDIN_LIMIT`, `LINKEDIN_SLOW_MO`, etc.
+   - `LINKEDIN_QUERIES`
+   - `LINKEDIN_LIMIT`, `LINKEDIN_REQUEST_DELAY_MS`, etc.
    - `DIGEST_SCHEDULE`, `MONITOR_SCHEDULE`
 7. Deploy
-
-The agent will run continuously on Render's paid tier. No credit card needed for free tier, but it won't reliably support Chromium.
 
 ---
 
@@ -217,7 +196,7 @@ job-search-agent/
 │   ├── gmail.js        ← Email fetching + sending + drafts
 │   ├── calendar.js     ← Calendar event fetching
 │   ├── sheets.js       ← Pipeline tracker read/write
-│   ├── linkedin.js     ← LinkedIn scraper wrapper
+│   ├── linkedin.js     ← LinkedIn public job board client
 │   ├── digest.js       ← Daily briefing email generator
 │   ├── monitor.js      ← Job scraping + scoring orchestrator
 │   └── drafter.js      ← Email/outreach drafter

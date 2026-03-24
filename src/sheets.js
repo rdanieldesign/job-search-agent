@@ -90,53 +90,60 @@ export async function addOpportunity(opp) {
 }
 
 /**
- * Read previously seen job IDs from the "Seen" tab
- * @returns {Set} set of job IDs that have been evaluated before
+ * Read previously seen jobs from the "Seen" tab
+ * @returns {Map} map of jobId → { title, company }
  */
 export async function readSeenJobIds() {
   try {
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: `${SEEN_TAB}!A:A`,
+      range: `${SEEN_TAB}!A:C`,
     });
 
     const rows = res.data.values || [];
-    if (rows.length < 2) return new Set(); // Header only or empty
+    if (rows.length < 2) return new Map(); // Header only or empty
 
-    // Skip header (row 0), collect all job IDs from column A
-    const ids = rows.slice(1).map((row) => row[0]).filter(Boolean);
-    return new Set(ids);
+    // Skip header (row 0); columns: A=jobId, B=title, C=company
+    const map = new Map();
+    for (const row of rows.slice(1)) {
+      const id = row[0];
+      if (id) map.set(id, { title: row[1] || '', company: row[2] || '' });
+    }
+    return map;
   } catch (err) {
-    // Tab might not exist yet — return empty set and log gracefully
+    // Tab might not exist yet — return empty map and log gracefully
     if (err.message.includes('Unable to parse range')) {
       console.log('[Sheets] "Seen" tab does not exist yet — will be created on first write');
-      return new Set();
+      return new Map();
     }
-    console.error('[Sheets] Error reading seen job IDs:', err.message);
-    return new Set();
+    console.error('[Sheets] Error reading seen jobs:', err.message);
+    return new Map();
   }
 }
 
 /**
- * Write seen job IDs to the "Seen" tab (overwrites existing data)
- * @param {Set} seenJobIds - set of job IDs to persist
+ * Write seen jobs to the "Seen" tab (overwrites existing data)
+ * @param {Map} seenJobIds - map of jobId → { title, company }
  */
 export async function writeSeenJobIds(seenJobIds) {
   try {
-    if (seenJobIds.size === 0) return; // No point writing empty set
+    if (seenJobIds.size === 0) return; // No point writing empty map
 
-    const values = [['Job ID'], ...Array.from(seenJobIds).map((id) => [id])];
+    const values = [
+      ['Job ID', 'Title', 'Company'],
+      ...Array.from(seenJobIds.entries()).map(([id, { title, company }]) => [id, title, company]),
+    ];
 
     await sheets.spreadsheets.values.update({
       spreadsheetId: SHEET_ID,
-      range: `${SEEN_TAB}!A:A`,
+      range: `${SEEN_TAB}!A:C`,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values },
     });
 
-    console.log(`[Sheets] Persisted ${seenJobIds.size} seen job IDs`);
+    console.log(`[Sheets] Persisted ${seenJobIds.size} seen jobs`);
   } catch (err) {
-    console.error('[Sheets] Error writing seen job IDs:', err.message);
+    console.error('[Sheets] Error writing seen jobs:', err.message);
   }
 }
 
