@@ -22,6 +22,15 @@ jobs:
 
       - run: npm ci
 
+      - name: Write profile from secret
+        run: |
+          node --input-type=commonjs -e "
+            const fs = require('fs');
+            fs.writeFileSync('prompts/profile.js', 'export const PROFILE_CONTEXT = ' + JSON.stringify(process.env.PROFILE_CONTEXT) + ';');
+          "
+        env:
+          PROFILE_CONTEXT: ${{ secrets.PROFILE_CONTEXT }}
+
       - run: node src/index.js --job=draft
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

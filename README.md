@@ -134,6 +134,7 @@ Add each of the following:
 | `YOUR_NAME` | Your name (used in email drafts) |
 | `PIPELINE_SHEET_ID` | From your Google Sheet URL |
 | `PIPELINE_SHEET_TAB` | Tab name, if not `Pipeline` |
+| `PROFILE_CONTEXT` | The string value exported from your `prompts/profile.js` |
 | `LINKEDIN_QUERIES` | JSON array, e.g. `[{"query":"Engineering Manager","location":"United States"}]` |
 
 Optional secrets (code uses defaults if not set):
