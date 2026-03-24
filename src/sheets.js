@@ -10,6 +10,7 @@ import 'dotenv/config';
 
 const SHEET_ID = process.env.PIPELINE_SHEET_ID;
 const TAB = process.env.PIPELINE_SHEET_TAB || 'Pipeline';
+const SEEN_TAB = 'Seen'; // Tab for persisting seen job IDs
 
 // Status values — keep these consistent
 export const STATUS = {
@@ -85,6 +86,57 @@ export async function addOpportunity(opp) {
     console.log(`[Sheets] Added opportunity: ${opp.company} — ${opp.role}`);
   } catch (err) {
     console.error('[Sheets] Error adding opportunity:', err.message);
+  }
+}
+
+/**
+ * Read previously seen job IDs from the "Seen" tab
+ * @returns {Set} set of job IDs that have been evaluated before
+ */
+export async function readSeenJobIds() {
+  try {
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: SHEET_ID,
+      range: `${SEEN_TAB}!A:A`,
+    });
+
+    const rows = res.data.values || [];
+    if (rows.length < 2) return new Set(); // Header only or empty
+
+    // Skip header (row 0), collect all job IDs from column A
+    const ids = rows.slice(1).map((row) => row[0]).filter(Boolean);
+    return new Set(ids);
+  } catch (err) {
+    // Tab might not exist yet — return empty set and log gracefully
+    if (err.message.includes('Unable to parse range')) {
+      console.log('[Sheets] "Seen" tab does not exist yet — will be created on first write');
+      return new Set();
+    }
+    console.error('[Sheets] Error reading seen job IDs:', err.message);
+    return new Set();
+  }
+}
+
+/**
+ * Write seen job IDs to the "Seen" tab (overwrites existing data)
+ * @param {Set} seenJobIds - set of job IDs to persist
+ */
+export async function writeSeenJobIds(seenJobIds) {
+  try {
+    if (seenJobIds.size === 0) return; // No point writing empty set
+
+    const values = [['Job ID'], ...Array.from(seenJobIds).map((id) => [id])];
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SHEET_ID,
+      range: `${SEEN_TAB}!A:A`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values },
+    });
+
+    console.log(`[Sheets] Persisted ${seenJobIds.size} seen job IDs`);
+  } catch (err) {
+    console.error('[Sheets] Error writing seen job IDs:', err.message);
   }
 }
 

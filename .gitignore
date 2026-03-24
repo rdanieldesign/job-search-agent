@@ -6,3 +6,4 @@ node_modules/
 # Your personal job search profile — contains private info, never commit this
 # Use profile.example.js as the template
 prompts/profile.js
+IMPLEMENTATION_SUMMARY.md

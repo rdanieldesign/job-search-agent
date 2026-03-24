@@ -2,17 +2,18 @@
 // Generates the daily job search briefing email.
 // Pulls Gmail, Calendar, and pipeline data → sends to Claude → delivers to inbox.
 
-import Anthropic from '@anthropic-ai/sdk';
-import { fetchRecentJobEmails, sendEmail } from './gmail.js';
-import { fetchUpcomingEvents } from './calendar.js';
-import { fetchPipeline, summarizePipeline } from './sheets.js';
-import { PROFILE_CONTEXT } from '../prompts/profile.js';
-import 'dotenv/config';
+import Anthropic from "@anthropic-ai/sdk";
+import { fetchRecentJobEmails, sendEmail } from "./gmail.js";
+import { fetchUpcomingEvents } from "./calendar.js";
+import { fetchPipeline, summarizePipeline } from "./sheets.js";
+import { PROFILE_CONTEXT } from "../prompts/profile.js";
+import "dotenv/config";
 
+const YOUR_NAME = process.env.YOUR_NAME || "the user";
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function runDailyDigest() {
-  console.log('[Digest] Starting daily job search digest...');
+  console.log("[Digest] Starting daily job search digest...");
 
   // Gather all context in parallel
   const [emails, events, pipeline] = await Promise.all([
@@ -21,19 +22,23 @@ export async function runDailyDigest() {
     fetchPipeline(),
   ]);
 
-  console.log(`[Digest] Fetched: ${emails.length} emails, ${events.length} events, ${pipeline.length} pipeline entries`);
+  console.log(
+    `[Digest] Fetched: ${emails.length} emails, ${events.length} events, ${pipeline.length} pipeline entries`,
+  );
 
   // Build the prompt for Claude
   const userPrompt = buildDigestPrompt(emails, events, pipeline);
 
   // Ask Claude to generate the digest
-  console.log('[Digest] Asking Claude to generate briefing...');
+  console.log("[Digest] Asking Claude to generate briefing...");
   const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5',
+    model: "claude-haiku-4-5",
     max_tokens: 1500,
-    system: PROFILE_CONTEXT + `
+    system:
+      PROFILE_CONTEXT +
+      `
 
-You are generating Richard's daily job search briefing email. 
+You are generating ${YOUR_NAME}'s daily job search briefing email. 
 Output valid HTML only — no markdown, no preamble, no explanation.
 The email should be clean, scannable, and action-oriented.
 Use the design system below.
@@ -48,54 +53,74 @@ HTML Design Rules:
 `,
     messages: [
       {
-        role: 'user',
+        role: "user",
         content: userPrompt,
       },
     ],
   });
 
-  const htmlContent = response.content[0]?.text || '<p>Error generating digest.</p>';
+  let htmlContent =
+    response.content[0]?.text || "<p>Error generating digest.</p>";
+
+  // Clean up any accidental HTML tags or markdown that Claude might include
+  htmlContent = htmlContent
+    .replace(/^```html\n?/, "")
+    .replace(/\n?```$/, "")
+    .trim();
 
   // Wrap in full email template
   const fullHtml = wrapEmailTemplate(htmlContent);
 
-  const subject = `☀️ Job Search Brief — ${new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
+  const subject = `Job Search Brief — ${new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
   })}`;
 
-  if (process.env.DRY_RUN === 'true') {
-    console.log('[DRY RUN] Digest subject:', subject);
-    console.log('[DRY RUN] Digest preview (first 500 chars):');
+  if (process.env.DRY_RUN === "true") {
+    console.log("[DRY RUN] Digest subject:", subject);
+    console.log("[DRY RUN] Digest preview (first 500 chars):");
     console.log(htmlContent.slice(0, 500));
     return;
   }
 
   await sendEmail(process.env.YOUR_EMAIL, subject, fullHtml);
-  console.log('[Digest] Daily digest sent successfully');
+  console.log("[Digest] Daily digest sent successfully");
 }
 
 function buildDigestPrompt(emails, events, pipeline) {
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 
-  const emailSummary = emails.length === 0
-    ? 'No job-related emails in the last 24 hours.'
-    : emails.map((e) =>
-        `• From: ${e.from}\n  Subject: ${e.subject}\n  Preview: ${e.snippet}`
-      ).join('\n\n');
+  const emailSummary =
+    emails.length === 0
+      ? "No job-related emails in the last 24 hours."
+      : emails
+          .map(
+            (e) =>
+              `• From: ${e.from}\n  Subject: ${e.subject}\n  Preview: ${e.snippet}`,
+          )
+          .join("\n\n");
 
-  const eventSummary = events.length === 0
-    ? 'No job-related calendar events in the next 7 days.'
-    : events.map((e) => {
-        const start = new Date(e.start).toLocaleString('en-US', {
-          weekday: 'short', month: 'short', day: 'numeric',
-          hour: 'numeric', minute: '2-digit',
-        });
-        return `• ${e.title} — ${start}${e.isJobRelated ? ' [JOB RELATED]' : ''}`;
-      }).join('\n');
+  const eventSummary =
+    events.length === 0
+      ? "No job-related calendar events in the next 7 days."
+      : events
+          .map((e) => {
+            const start = new Date(e.start).toLocaleString("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            });
+            return `• ${e.title} — ${start}${e.isJobRelated ? " [JOB RELATED]" : ""}`;
+          })
+          .join("\n");
 
   const pipelineSummary = summarizePipeline(pipeline);
 
@@ -131,9 +156,9 @@ function wrapEmailTemplate(innerHtml) {
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f6f1; margin: 0; padding: 0; }
   .wrapper { max-width: 680px; margin: 0 auto; background: #ffffff; }
-  .header { background: #2d5016; color: #f8f6f1; padding: 20px 28px; }
+  .header { background: #3d6b2a; color: #ffffff; padding: 20px 28px; }
   .header h1 { font-size: 18px; font-weight: 700; margin: 0; }
-  .header p { font-size: 12px; color: rgba(248,246,241,0.6); margin: 4px 0 0; font-family: monospace; }
+  .header p { font-size: 12px; color: rgba(255,255,255,0.75); margin: 4px 0 0; font-family: monospace; }
   .content { padding: 24px 28px; font-size: 14px; line-height: 1.6; color: #1a1a18; }
   .footer { background: #f8f6f1; padding: 14px 28px; font-size: 11px; color: #7a7568; border-top: 1px solid #ddd9d0; font-family: monospace; }
 </style>
@@ -142,7 +167,7 @@ function wrapEmailTemplate(innerHtml) {
 <div class="wrapper">
   <div class="header">
     <h1>☀️ Job Search Brief</h1>
-    <p>${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} · Generated by job-search-agent</p>
+    <p>${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })} · Generated by job-search-agent</p>
   </div>
   <div class="content">
     ${innerHtml}

@@ -22,74 +22,80 @@ opportunities, and manage their network. Be direct, specific, and prioritize
 ruthlessly.
 
 ## Who They Are
-[2-3 sentences describing your background, most recent role, and key experience.
-Example: "Founding engineer at Acme Corp, helped scale from 10 to 500 employees over
-8 years. Strongest in frontend development with growing full-stack interest.
-True strength is communication, cross-functional leadership, and people development."]
+Senior Product Manager with 10+ years driving growth at fintech and SaaS companies.
+Background in business analysis and customer success before moving into product.
+Passionate about simplifying complex financial concepts for everyday users.
+Strongest in market research, roadmap prioritization, and cross-functional execution.
 
 ## Target Role
-Primary: [e.g. Senior Engineering Manager]
-Secondary (right opportunity only): [e.g. Engineering Manager, Staff Engineer IC]
+Primary: [e.g. VP Product]
+Secondary (right opportunity only): [e.g. Senior Product Manager, Director of Product]
 
 ## Compensation
-- Target: $[X]K+ base, $[Y]K+ total comp
-- Floor: $[X]K base — do not suggest roles below this for standard companies
-- Exception: flexible on comp for [passion industry] IF company is financially stable
-- Previous comp: $[X]K base + $[Y]K bonus at [Previous Company]
+- Target: $200K+ base, $300K+ total comp
+- Floor: $180K base — do not suggest roles below this for standard companies
+- Exception: flexible on comp for education/non-profit fintech IF company is financially stable
+- Previous comp: $165K base + $45K bonus at Previous Company
 
 ## Location
-- Preferred: [City, State] hybrid
-- Open to: fully remote with strong culture
-- Not open to: relocation
+- Preferred: Austin, TX or Denver, CO hybrid (3 days in office)
+- Open to: fully remote with quarterly in-person meetings
+- Not open to: relocation to expensive coasts
 
 ## Company Profile
-- Preferred size: [e.g. 100–500 employees]
-- Stage: [e.g. Series B–D minimum] — describe any restrictions (e.g. no early-stage)
-- Culture preferences: [e.g. engineering-driven, product-minded]
+- Preferred size: 200–2000 employees
+- Stage: Series B+ minimum, profitable preferred
+- Culture preferences: data-driven, customer-centric, flat hierarchy
 
 ## Passion Industries — TOP PRIORITY
 [List industries or mission areas you'd take a pay cut for — be specific]
-- Example: Outdoor recreation, conservation, environmental technology
-- Example dream companies: [Company A], [Company B], [Company C]
+- Financial inclusion and underbanked populations
+- Climate tech and sustainability finance
+- Education technology and workforce development
+- Example dream companies: Stripe, Plaid, Betterment
 
 ## Ethics Criteria — HARD FILTERS
 NEVER recommend or flag positively:
-- [List your hard ethical lines — e.g. surveillance tech, weapons, etc.]
+- Predatory lending or high-interest payday loan services
+- Political campaign finance tools
+- Technologies that exploit vulnerable populations
 
 GREEN FLAGS (actively seek these out):
-- [e.g. PBC or B Corp status]
-- [e.g. Published responsible AI commitments]
-- [e.g. Conservation/environmental mission]
+- B Corp or Benefit Corporation status
+- Published diversity and inclusion reports
+- Open source contributions and transparency
 
 SOFT CAUTION (ask questions, don't automatically exclude):
-- [e.g. Dual-use technology]
-- [e.g. Government contracts in sensitive areas]
+- Insurance or risk-based products (ask about underwriting ethics)
+- Data brokers (ask about data handling practices)
 
 ## Industries/Companies to Avoid
 [List non-competes, competitors, or companies you won't work for and why]
-- [Company A] — [reason, e.g. non-compete]
-- [Company B] — [reason, e.g. ethics concern]
+- Competitor fintech startups (non-compete from current role expires Q3 2026)
+- Traditional bank legacy systems (prefer modern stack)
+- Heavy government contracting (prefer commercial focus)
 
 ## Current Active Pipeline
 [Loaded dynamically from Google Sheets at runtime — leave this line as-is]
 
 ## Key Strengths to Lead With
-1. [Your most compelling credential]
-2. [Leadership or people skills]
-3. [Communication or cross-functional strength]
-4. [Technical differentiator]
-5. [Unique background element]
+1. Shipped 5+ products that crossed 100K+ users
+2. Mentor and people developer (led 3 promotions in past 3 years)
+3. Can translate technical complexity into business outcomes
+4. Strong data literacy (SQL, Tableau, statistical thinking)
+5. Bootstrap mentality — built product teams from scratch
 
 ## Technical Profile
-Core stack: [e.g. React, TypeScript, Node.js, Python]
-Infra exposure: [e.g. AWS, Docker, Kubernetes]
-AI/tooling: [Any AI or tooling expertise — this is a differentiator right now]
-Growth interest: [What you want to learn or grow into next]
+Core stack: React, Python, SQL
+Infra exposure: Basic AWS (EC2, RDS), comfortable reading architecture docs
+AI/tooling: Familiar with LLM APIs, AI-assisted product roadmapping, analytics automation
+Growth interest: Deepening financial modeling skills, exploring venture capital perspective
 
 ## Current Active Job Search Targets
 [List companies you're actively pursuing with brief status]
-- [Company A] ([role] — [status, e.g. "applied", "live role", "monitoring"])
-- [Company B] ([role] — [status])
+- Fintech startup X (VP Product — live role, phone screen next week)
+- Climate tech company Y (Head of Product — monitoring, waiting for series funding close)
+- Education platform Z (Senior PM — applied 2 weeks ago, no response)
 `;
 
 export default PROFILE_CONTEXT;

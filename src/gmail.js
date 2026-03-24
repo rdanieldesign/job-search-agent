@@ -1,24 +1,24 @@
 // src/gmail.js
 // Fetches recent job-related emails from Gmail for the daily digest.
 
-import { gmail } from './google.js';
+import { gmail } from "./google.js";
 
 // Labels/keywords that identify job-related emails
 const JOB_SEARCH_QUERY = [
-  'subject:interview',
-  'subject:opportunity',
-  'subject:recruiter',
-  'subject:offer',
-  'subject:application',
-  'subject:follow up',
-  'subject:position',
-  'from:greenhouse.io',
-  'from:lever.co',
-  'from:ashbyhq.com',
-  'from:linkedin.com',
-  'from:indeed.com',
-  'label:job-search', // if you've set up a Gmail label
-].join(' OR ');
+  "subject:interview",
+  "subject:opportunity",
+  "subject:recruiter",
+  "subject:offer",
+  "subject:application",
+  "subject:follow up",
+  "subject:position",
+  "from:greenhouse.io",
+  "from:lever.co",
+  "from:ashbyhq.com",
+  "from:linkedin.com",
+  "from:indeed.com",
+  "label:job-search", // if you've set up a Gmail label
+].join(" OR ");
 
 /**
  * Fetch job-related emails from the last N hours
@@ -31,7 +31,7 @@ export async function fetchRecentJobEmails(hoursBack = 24) {
     const query = `(${JOB_SEARCH_QUERY}) after:${after}`;
 
     const listRes = await gmail.users.messages.list({
-      userId: 'me',
+      userId: "me",
       q: query,
       maxResults: 20,
     });
@@ -41,12 +41,12 @@ export async function fetchRecentJobEmails(hoursBack = 24) {
 
     // Fetch each message in parallel
     const emailDetails = await Promise.all(
-      messages.map((m) => fetchEmailDetail(m.id))
+      messages.map((m) => fetchEmailDetail(m.id)),
     );
 
     return emailDetails.filter(Boolean);
   } catch (err) {
-    console.error('[Gmail] Error fetching emails:', err.message);
+    console.error("[Gmail] Error fetching emails:", err.message);
     return [];
   }
 }
@@ -57,27 +57,40 @@ export async function fetchRecentJobEmails(hoursBack = 24) {
 async function fetchEmailDetail(messageId) {
   try {
     const res = await gmail.users.messages.get({
-      userId: 'me',
+      userId: "me",
       id: messageId,
-      format: 'metadata',
-      metadataHeaders: ['Subject', 'From', 'Date'],
+      format: "metadata",
+      metadataHeaders: ["Subject", "From", "Date"],
     });
 
     const headers = res.data.payload?.headers || [];
     const get = (name) =>
-      headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value || '';
+      headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ||
+      "";
 
     return {
       id: messageId,
-      subject: get('Subject'),
-      from: get('From'),
-      date: get('Date'),
-      snippet: res.data.snippet || '',
+      subject: get("Subject"),
+      from: get("From"),
+      date: get("Date"),
+      snippet: res.data.snippet || "",
     };
   } catch (err) {
     console.error(`[Gmail] Error fetching message ${messageId}:`, err.message);
     return null;
   }
+}
+
+/**
+ * Encode subject line with RFC 2047 Base64 encoding for non-ASCII characters
+ */
+function encodeSubject(subject) {
+  // Check if subject contains non-ASCII characters
+  if (/[^\x00-\x7F]/.test(subject)) {
+    const encoded = Buffer.from(subject).toString("base64");
+    return `=?UTF-8?B?${encoded}?=`;
+  }
+  return subject;
 }
 
 /**
@@ -88,23 +101,24 @@ async function fetchEmailDetail(messageId) {
  */
 export async function createDraft(to, subject, body) {
   try {
+    const encodedSubject = encodeSubject(subject);
     const message = [
       `To: ${to}`,
-      `Subject: ${subject}`,
-      'Content-Type: text/html; charset=utf-8',
-      'MIME-Version: 1.0',
-      '',
+      `Subject: ${encodedSubject}`,
+      "Content-Type: text/html; charset=utf-8",
+      "MIME-Version: 1.0",
+      "",
       body,
-    ].join('\n');
+    ].join("\r\n");
 
     const encoded = Buffer.from(message)
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
 
     const res = await gmail.users.drafts.create({
-      userId: 'me',
+      userId: "me",
       requestBody: {
         message: { raw: encoded },
       },
@@ -113,7 +127,7 @@ export async function createDraft(to, subject, body) {
     console.log(`[Gmail] Draft created: ${subject} (ID: ${res.data.id})`);
     return res.data.id;
   } catch (err) {
-    console.error('[Gmail] Error creating draft:', err.message);
+    console.error("[Gmail] Error creating draft:", err.message);
     return null;
   }
 }
@@ -123,28 +137,29 @@ export async function createDraft(to, subject, body) {
  */
 export async function sendEmail(to, subject, htmlBody) {
   try {
+    const encodedSubject = encodeSubject(subject);
     const message = [
       `To: ${to}`,
-      `Subject: ${subject}`,
-      'Content-Type: text/html; charset=utf-8',
-      'MIME-Version: 1.0',
-      '',
+      `Subject: ${encodedSubject}`,
+      "Content-Type: text/html; charset=utf-8",
+      "MIME-Version: 1.0",
+      "",
       htmlBody,
-    ].join('\n');
+    ].join("\r\n");
 
     const encoded = Buffer.from(message)
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
 
     await gmail.users.messages.send({
-      userId: 'me',
+      userId: "me",
       requestBody: { raw: encoded },
     });
 
     console.log(`[Gmail] Email sent: ${subject}`);
   } catch (err) {
-    console.error('[Gmail] Error sending email:', err.message);
+    console.error("[Gmail] Error sending email:", err.message);
   }
 }
