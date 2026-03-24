@@ -173,7 +173,7 @@ function wrapEmailTemplate(innerHtml) {
     ${innerHtml}
   </div>
   <div class="footer">
-    job-search-agent · Running on Render.com · Powered by Claude Haiku
+    job-search-agent
   </div>
 </div>
 </body>
