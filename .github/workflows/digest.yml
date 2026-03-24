@@ -1,11 +1,9 @@
 name: Daily Digest
 
-# Runs at 7:00 AM UTC daily.
-# To adjust for your timezone, convert to UTC:
-#   e.g. 7:00 AM EST = 12:00 UTC → cron: '0 12 * * *'
+# Runs at 7:00 AM EST (12:00 UTC) daily.
 on:
   schedule:
-    - cron: '0 7 * * *'
+    - cron: '0 12 * * *'
   workflow_dispatch: # allows manual trigger from GitHub Actions UI
 
 jobs:

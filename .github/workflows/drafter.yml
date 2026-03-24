@@ -1,12 +1,10 @@
 name: Interview Drafter
 
-# Runs at 6:30 AM UTC daily — 30 minutes before the digest so drafts are
-# ready when the briefing arrives.
-# To adjust for your timezone, convert to UTC:
-#   e.g. 6:30 AM EST = 11:30 UTC → cron: '30 11 * * *'
+# Runs at 6:30 AM EST (11:30 UTC) daily — 30 minutes before the digest
+# so drafts are ready when the briefing arrives.
 on:
   schedule:
-    - cron: '30 6 * * *'
+    - cron: '30 11 * * *'
   workflow_dispatch: # allows manual trigger from GitHub Actions UI
 
 jobs:
