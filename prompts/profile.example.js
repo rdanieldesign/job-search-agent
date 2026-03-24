@@ -8,11 +8,10 @@
 //   2. Fill in YOUR details in profile.js
 //   3. profile.js is .gitignored — it will never be committed
 //
-// On Render.com:
-//   After deploying, open your service → Shell tab → run:
-//   cp prompts/profile.example.js prompts/profile.js
-//   Then edit it with: nano prompts/profile.js
-//   The file persists on the Render instance between deploys.
+// On GitHub Actions:
+//   Store the full string value of PROFILE_CONTEXT as a GitHub Actions
+//   secret named PROFILE_CONTEXT. The workflows reconstruct the file at
+//   runtime before each job runs — no manual deploy step needed.
 // ============================================================
 
 export const PROFILE_CONTEXT = `

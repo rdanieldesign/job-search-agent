@@ -45,11 +45,10 @@ if (isDryRun) {
         // Example: draft an outreach to a specific contact
         // Customize the params below or pass them as additional args
         await draftOutreach({
-          name: "Jimmy Carter",
-          title: "Vice President, Recruiting",
-          company: "Big Tech Company",
-          context:
-            "Hello, I came across this job posting at your company and would like to buy you a coffee.",
+          name: "[CONTACT NAME]",
+          title: "[CONTACT TITLE]",
+          company: "[COMPANY]",
+          context: "[HOW YOU KNOW THEM / WHY YOU'RE REACHING OUT]",
           type: "email",
         });
         break;
