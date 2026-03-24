@@ -48,7 +48,7 @@ rl.question('Authorization code: ', async (code) => {
     console.log('========================================\n');
     console.log(`GOOGLE_ACCESS_TOKEN=${tokens.access_token}`);
     console.log(`GOOGLE_REFRESH_TOKEN=${tokens.refresh_token}`);
-    console.log('\nDone! Run "npm start" to launch the agent.');
+    console.log('\nDone! Add these tokens to your .env (local) and GitHub Actions secrets.');
   } catch (err) {
     console.error('Error getting tokens:', err.message);
   }
