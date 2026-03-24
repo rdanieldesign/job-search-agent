@@ -7,3 +7,5 @@ node_modules/
 # Use profile.example.js as the template
 prompts/profile.js
 IMPLEMENTATION_SUMMARY.md
+LINKEDIN_SCRAPER_MIGRATION.md
+MIGRATION_COMPLETE.md
