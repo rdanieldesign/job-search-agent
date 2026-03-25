@@ -53,7 +53,7 @@ async function draftThankYou(event) {
         content: `Draft a post-interview thank-you email based on this calendar event.
 
 Event: ${event.title}
-Date/Time: ${new Date(event.start).toLocaleString()}
+Date/Time: ${new Date(event.start).toLocaleString("en-US", { timeZone: process.env.TIMEZONE || "America/New_York" })}
 Attendees: ${event.attendees || "not listed"}
 Description: ${event.description || "none"}
 

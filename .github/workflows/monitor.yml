@@ -32,6 +32,7 @@ jobs:
 
       - run: node src/index.js --job=monitor
         env:
+          TIMEZONE: America/New_York
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
