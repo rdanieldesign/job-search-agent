@@ -134,7 +134,7 @@ async function sendJobAlert(matches) {
         appliedDate: "",
         lastContact: new Date().toLocaleDateString(),
         nextAction: `Review and apply if interested (score: ${job.matchScore})`,
-        notes: `Source: ${job.source} | Recommendation: ${job.recommendation}`,
+        notes: `Source: ${job.source} | Comp: ${job.compEstimate || "not listed"} | ${job.recommendation}`,
         matchScore: job.matchScore,
         ethicsFlag: job.ethicsFlag || "none",
       });
